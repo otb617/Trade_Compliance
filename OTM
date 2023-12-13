@@ -1,0 +1,33 @@
+select distinct 
+s.ATTRIBUTE8 VIN,
+s.shipment_gid,
+L.LOCATION_NAME SOURCE_LOCATION,
+L.LOCATION_GID SOURCE_ID,
+LO.LOCATION_NAME DESTINATION_LOCATION,
+LO.city DESTINATION_CITY,
+case when L.LOCATION_GID = 'RC3.NORTY' then 'TRUCK' else 'RAIL' end as Mode,
+to_timestamp(cast(convert_timezone('America/Chicago',S.ATTRIBUTE_DATE4) as timestamp),'YYYY-MM-DD HH24:MI:SS') as "Actual Departure Date",
+to_timestamp(cast(convert_timezone('America/Chicago',S.ATTRIBUTE_DATE5) as timestamp),'YYYY-MM-DD HH24:MI:SS') as "Estimated Departure Date",
+st.status_value_gid "Secure Resources"
+from shipment S
+INNER JOIN location L
+ON S.SOURCE_LOCATION_GID = L.LOCATION_GID
+INNER JOIN location LO
+ON S.DEST_LOCATION_GID = LO.LOCATION_GID
+INNER JOIN shipment_status St
+ON S.SHIPMENT_GID = St.SHIPMENT_GID
+inner join (select ATTRIBUTE8 vin ---vin in shipment
+from shipment 
+where SOURCE_LOCATION_GID = 'RC3.NORCS' 
+and ATTRIBUTE9 IN ('PLANNED','RC3.PLANNED') 
+and ATTRIBUTE10 IS NOT null) ss ----RTS FROM NORCS IS FG DATE
+on s.ATTRIBUTE8 = ss.vin
+where S.domain_name = 'RC3'
+and s.ATTRIBUTE9 IN ('PLANNED','RC3.PLANNED') 
+and s.delete_flag = false
+and st.status_type_gid = 'RC3.SECURE RESOURCES'
+and LO.country_code3_gid = 'CA'
+and DESTINATION_LOCATION in ('VANCOUVER,BC - SC','VAUGHAN, ON - SC','ESTLI','KENT')
+and L.LOCATION_GID in ('RC3.NORTY','RC3.NORRY','KENT')
+and S.ATTRIBUTE_DATE3 is null ---no unloaded date available means not delievered
+order by vin; 
