@@ -1,0 +1,17 @@
+---trade compliance in core service
+select CORE.vin, 
+       CORE.vehicle_usage,
+       CORE.vehicle_status, 
+ 	   to_timestamp(cast(convert_timezone('America/Chicago',CORE.factory_gate_date) as timestamp),'YYYY-MM-DD HH24:MI:SS') as factory_gate_date,
+	   CORE.eligible_for_vehicle_shop,
+       CORE.is_predictively_matched,
+       CORE.order_id,
+       CORE.Delivery_address_first_name,
+       CORE.delivery_address_last_name,
+       CORE.delivery_address_address1,
+       CORE.delivery_address_city,
+       CORE.delivery_address_zipcode,
+       CORE.distribution_center
+from rivian_coresvcs_ods.coresvcs_vehicle core
+where cast(convert_timezone('America/Chicago',CORE.factory_gate_date) as date)= current_date-1
+and gross_list_price_currency = 'CAD';
