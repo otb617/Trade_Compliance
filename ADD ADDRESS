@@ -19,5 +19,5 @@ select CORE.vin,
 from rivian_coresvcs_ods.coresvcs_vehicle core
 left join DC_CUST
 on DC_CUST.VIN = CORE.VIN
-where cast(convert_timezone('America/Chicago',CORE.factory_gate_date) as date)= current_date-100
+where cast(convert_timezone('America/Chicago',CORE.factory_gate_date) as date)= current_date-1
 and CORE.VAR00000039 = 'CA'; ---Country code in CORE
