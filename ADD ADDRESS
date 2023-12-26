@@ -1,0 +1,23 @@
+---trade compliance
+with DC_CUST AS(
+select 
+S.ATTRIBUTE8 VIN,
+first_value(L.LOCATION_NAME) over (partition by S.attribute8 order by s.insert_date desc rows between unbounded preceding and unbounded following) "DESTINATION DC",
+first_value(L.location_XID) over (partition by S.attribute8 order by s.insert_date desc rows between unbounded preceding and unbounded following) "DESTINATION DC ID"
+from rivn_logistics.shipment_ods S
+INNER JOIN rivn_logistics.location_ods L
+ON S.SOURCE_LOCATION_GID = L.LOCATION_GID
+where S.domain_name = 'RC3'
+and s.ATTRIBUTE9 IN ('PLANNED','RC3.PLANNED') 
+and s.delete_flag = false
+and s.source_location_gid like 'RC3.8%'
+and s.dest_location_gid like 'RC3.CUST%')
+select CORE.vin,  
+ 	   to_timestamp(cast(convert_timezone('America/Chicago',CORE.factory_gate_date) as timestamp),'YYYY-MM-DD HH24:MI:SS') as factory_gate_date,
+ 	   "DESTINATION DC",
+ 	   "DESTINATION DC ID"
+from rivian_coresvcs_ods.coresvcs_vehicle core
+left join DC_CUST
+on DC_CUST.VIN = CORE.VIN
+where cast(convert_timezone('America/Chicago',CORE.factory_gate_date) as date)= current_date-100
+and CORE.VAR00000039 = 'CA'; ---Country code in CORE
